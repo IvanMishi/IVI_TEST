@@ -1,0 +1,171 @@
+import java.io.File;
+import java.time.Duration;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+public class TEST1 {
+    //link
+    private WebDriver driver;
+    private WebDriverWait wait;
+
+    @Before
+    public void setUp() {
+        //Для тестирования используется Chrome Browser, путь к файлу chromedriver с помощью метода set property
+        System.setProperty("chromedriver", "drivers");
+        //Для второго задания требуется подключение VPN, - google play
+        ChromeOptions options = new ChromeOptions();
+        options.addExtensions(new File("/Users/2.12.33mishi/Documents/QA/AUTOTEST/TestJU1/Plugins/extension_1_1_2_0.crx"));//Путь к файлу CRX, чтобы добавить метод расширений, вы можете использовать vpn для этого теста, пне хотелось попробовать так
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        capabilities.setCapability(ChromeOptions.CAPABILITY, options);
+        options.merge(capabilities);
+        driver = new ChromeDriver(options);//Создать объект с нужным классом возможностей и передать его экземпляру веб-драйвера
+        //Неявные ожидания
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+        //Явные ожидания
+        wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+    }
+
+    @After
+    public void tearDown() {
+        driver.quit();//Закрыть браузер после выполнения теста
+    }
+    //generalLocator - локаторы которые будут использованы в трех тестах
+    private By searchLocator = By.className("gLFyf");//Локатор строки поиска google
+    private By searchBtnLocator = By.className("gNO89b");//Локатор кнопки посика google
+
+    @Test
+    public void testIvi_1() {
+
+        //arrange
+        var findWord = "ivi"; //Ключевое слово
+        var pictureBtnLocator = By.cssSelector("[data-hveid='CAEQBg']");//Кнопка картнки
+        var setBtnLocator = By.cssSelector("[jsname='I4bIT']");//Кнопка инструменты
+        var sizeBtnLocator = By.cssSelector("[jsname='wLFV5d']");//Кнопка выбора размера картинки
+        var sizeValueBigLocator = By.cssSelector("[class='MfLWbb']");//Кнопка установки размера картинки
+        var linkIVI = By.cssSelector("[href='https://www.ivi.ru/']"); //Кнопка - элементы имеющие ссылку на ivi
+
+        //act
+        driver.navigate().to("https://www.google.com/");//Перейти на сайт google
+        driver.findElement(searchLocator).sendKeys(findWord);//Искать "ivi"
+        driver.findElement(searchBtnLocator).click();//Клик по кнопке поиска
+        wait.until(ExpectedConditions.presenceOfElementLocated(pictureBtnLocator));//Подождать когда появится кнопка картинки (иногда не находил)
+        driver.findElement(pictureBtnLocator).click();//Клик по кнопке нартинки
+        driver.findElement(setBtnLocator).click();//Клик по кнопке инструменты
+        driver.findElement(sizeBtnLocator).click();//Клик по кнопке выбора размера
+        driver.findElement(sizeValueBigLocator).click();//Клик по кнопке с большими картинками
+
+        JavascriptExecutor js = (JavascriptExecutor) driver;//Не смог вынести в Before
+        //var linkFooter = driver.findElements(By.cssSelector(".WYR1I"));
+        //js.executeScript("arguments[0].scrollIntoView();", driver.findElements(By.cssSelector(".WYR1I"))); //Не смог реализовать скролл до появления копки "показать еще"
+        //Было принято решение скролить на 2000px пока не упрется в лоадер, затем повторить эти действия пока в dom не появятся нужные элементы, можно решить по разному, я решил так
+        js.executeScript("window.scrollBy(0,2000)");//Скролить до первого лоадера
+        js.executeScript("window.scrollBy(0,2000)");//Скролить до второго лоадера
+        js.executeScript("window.scrollBy(0,2000)");//Скролить до третьего лоадера
+        wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(linkIVI, 2));//Ждем подтверждения 2-х элементов
+
+        //assert
+        var linkElements = driver.findElements(linkIVI);
+        Assert.assertEquals("Не найдено 3 элемента", 3, linkElements.size());//Количество элементов имеющее ссылку на IVI = 3
+    }
+
+    @Test
+    public void testIvi_2() {
+        //arrange
+        var findWord = "ivi"; //Ключевое слово для поиска
+        var linkGooglePlay = By.cssSelector("a[href^='https://play.google.com']");//Ссылка на Google Play
+
+
+        //action
+        driver.navigate().to("https://www.google.com/");
+        driver.findElement(searchLocator).sendKeys(findWord);
+        driver.findElement(searchBtnLocator).click();
+
+        String beforeRatingIviLocator = driver.findElement(By.cssSelector(".fG8Fp.uo4vr > span:nth-of-type(2)")).getText().split(" ")[1];//Поиск элемента с рейтингом до перехода и получить число из второй части разделив пробельным символом
+        driver.findElement(linkGooglePlay).click();//Перейти по ссылке в GooglePlay
+        String afterRatingIviLocator = driver.findElement(By.cssSelector("[class='TT9eCd']")).getText().split("\n")[0];//Поиск элемента с рейтингом после перехода в GooglePlay, зазделим переносом на новую строку, заберем первую часть
+
+        //Assert
+        Assert.assertEquals("Некорректный текст с рейтингом", beforeRatingIviLocator,afterRatingIviLocator);
+        //Результат не совпадает  Expected: 3,5 Actual: 3.7 - как быть с точкой и заптой не решил, но предполагаю что можно получить число 35 и 37 соответственно их сравнить, но в требованиях было - убедится что совпадает, поэтому значения не трогал
+    }
+
+    @Test
+    public void testIvi_3() {
+        //arrange
+
+        var findWord = "ivi"; //Ключевое слово для поиска
+        var linkIviWiki = By.cssSelector("a[href^='https://ru.wikipedia.org/wiki/%D0%98%D0%B2%D0%B8']");//Ссылка на википедия
+        var urlIvi = By.cssSelector("a[href^='https://www.ivi.tv/']");
+
+        //Первые пять страниц
+        var selectPage1 = By.cssSelector(".YyVfkd");
+        var selectPage2 = By.cssSelector("[aria-label='Page 2']");
+        var selectPage3 = By.cssSelector("[aria-label='Page 3']");
+        var selectPage4 = By.cssSelector("[aria-label='Page 4']");
+        var selectPage5 = By.cssSelector("[aria-label='Page 5']");
+
+        //action
+        driver.navigate().to("https://www.google.com/");
+        driver.findElement(searchLocator).sendKeys(findWord);
+        driver.findElement(searchBtnLocator).click();
+
+        //Искать на 5 страницах
+        boolean present;
+        //Попытка найти элемент на первой странице
+        try {
+        driver.findElement(selectPage1).click();
+        driver.findElement(linkIviWiki).click();
+        present = true;
+        } catch (NoSuchElementException e) {
+        present = false;
+        }
+        //Попытка найти элемент на второй странице
+        try {
+        driver.findElement(selectPage2).click();
+        driver.findElement(linkIviWiki).click();
+        present = true;
+        } catch (NoSuchElementException e) {
+        present = false;
+        }
+        //Попытка найти элемент на третьей странице
+        try {
+            driver.findElement(selectPage3).click();
+            driver.findElement(linkIviWiki).click();
+            present = true;
+        } catch (NoSuchElementException e) {
+            present = false;
+        }
+        //Попытка найти элемент на четветрой странице
+        try {
+            driver.findElement(selectPage4).click();
+            driver.findElement(linkIviWiki).click();
+            present = true;
+        } catch (NoSuchElementException e) {
+            present = false;
+        }
+        //Попытка найти элемент на пятой странице
+        try {
+            driver.findElement(selectPage4).click();
+            driver.findElement(linkIviWiki).click();
+            present = true;
+        } catch (NoSuchElementException e) {
+            present = false;
+        }
+
+        //Assert
+        var actualResult = driver.findElement(urlIvi).getText(); //получить текст элемента
+        var expectedResult = "ivi.tv";//Ожидаемый текст
+        Assert.assertEquals("Ссылка на ivi.tv не найдена", expectedResult, actualResult); //ссылка на ivi
+
+    }
+}
