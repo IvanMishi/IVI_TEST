@@ -1,2 +1,31 @@
-# IVI_TEST
-INSTRUCTION
+# IVI_TEST INSTRUCTION
+
+Cоздание проекта 
+IDEA CE => create New Project =>
+  name = (имя задет пользователь, используем латинские символы)
+  Language = Java
+  Build system = Maven 
+
+Библиотека созданого проекта:
+  директория test - - хранение тестов 
+  pom.xml - - подключение библиотек
+  drivers - - для подключения chrome driver 
+  plugins - - подключение сторонних плагинов к веб браузеру для запуска тестирования с этими плагинами
+ 
+Selenium / Junit/библиотека подключение к JAVA (pom.xml)
+<dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.9.0</version>
+        </dependency>
+</dependencies>
+    
+    Создание класса в папке директории test => FirstTestIvi
+      далее в него копируем и вставляем код из репозитория QA_TEST
