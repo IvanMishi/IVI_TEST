@@ -13,7 +13,7 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class testIvi {
+public class TestIvi {
     //link
     private WebDriver driver;
     private WebDriverWait wait;
